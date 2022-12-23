@@ -119,7 +119,7 @@ public class Article {
 
     /*Entity 를 만들때는 무조건 기본 생성자가 필요하다.
        public 또는 protected 만 가능한데, 평생 아무데서도 기본생성자를 안쓰이게 하고 싶어서 protected 로 변경함
-    * */
+    */
     protected Article(){}
 
     /**사용자가 입력하는 값만 받기. 나머지는 시스템이 알아서 하게 해주면 됨.*/
