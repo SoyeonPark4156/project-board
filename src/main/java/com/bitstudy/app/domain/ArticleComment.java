@@ -3,6 +3,7 @@ package com.bitstudy.app.domain;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -24,7 +25,7 @@ import java.time.LocalDateTime;
         @Index(columnList = "createdBy")
 })
 
-public class ArticleComment {
+public class ArticleComment extends AuditingFields {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -48,19 +49,19 @@ public class ArticleComment {
     private String content; //본문
 
     //메타데이터
-    @CreatedDate
-    @Column(nullable = false)
-    private LocalDateTime createdAt; // 생성일시
-
-    @CreatedBy
-    @Column(nullable = false, length = 100)
-    private String createdBy; //생성자
-
-    @LastModifiedDate
-    @Column(nullable = false)
-    private LocalDateTime modifiedAt; //수정일시
-
-    @LastModifiedBy
-    @Column(nullable = false, length = 100)
-    private String modifiedBy; //수정자
+//    @CreatedDate
+//    @Column(nullable = false)
+//    private LocalDateTime createdAt; // 생성일시
+//
+//    @CreatedBy
+//    @Column(nullable = false, length = 100)
+//    private String createdBy; //생성자
+//
+//    @LastModifiedDate
+//    @Column(nullable = false)
+//    private LocalDateTime modifiedAt; //수정일시
+//
+//    @LastModifiedBy
+//    @Column(nullable = false, length = 100)
+//    private String modifiedBy; //수정자
 }
