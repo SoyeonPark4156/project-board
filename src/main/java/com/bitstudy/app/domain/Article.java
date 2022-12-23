@@ -16,6 +16,28 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
+/**Article 과 ArticleComment 에 있는 공통 필드(메타데이터. ID제외) 들을 별도로 빼서 관리할거임.
+ * 이유는 앞으로 Aricle과 AricleComment 처럼 fk 같은거로 엮여있는 테이블들 만들경우, 모든 domain 안에 있는 파일들에 많은 중복 코드들이
+ * 들어가게 된다. 그래서 별도의 파일에 공통되는 것들을 다 몰아놓고 사용하는거 해보기
+ *
+ * 참고: 공통필드를 빼는걸 팀마다 다르다.
+ *      중복코드를 싫어해서 그냥 각 파일마다 다 두는 사람들이 잇고,(유지보스)
+ *
+ *      중복코드를 괜찮아 해서 각 파일에 그냥 두는 사람도 있다.
+ *      (각 파일에 모든 정보가 다 있다. 변경시 유연하게 코드 작업을 할 수 있다.)
+ *
+ * 추출은 두가지 방법으로 할 수 있다.
+ * 1) @Embedded - 공통되는 필드들을 하나의 클래스로 만들어서 @Embedded 있는 곳에서 치환 하는 방식
+ *
+ * 2) @MappedSuperClass - (요즘 실무에서 사용하는 방식)
+ *                        @MappedSuperClass 어노테이션이 붙은 곳에서 사용
+ * *둘의 차이 : 사실은 둘이 비슷하지만 @embedded 방식을 하게 되면 필드가 하나 추가되고,
+ *      영속성 컨텍스트를 통해서 데이터를 넘겨받아서 어플리케이션으로 열었을 때에는 어차피 AuditingField 랑 똑같이 보인다.
+ *      (중간에 한단게가 더 있다는 뜻)
+ *
+ *     @MappedSuperClass 는 표준 JPA 에서 제공해주는 클래스. 중간단계 따로없이 바로 동작
+ *
+ * */
 /**할일 : Lombok 사용하기
  * 주의 : maven 떄랑 같은 방식인 것들도 이름이 다르게 되어 있으니 헷갈리지 않게 주의!
  *
@@ -27,11 +49,11 @@ import java.util.Set;
  * */
 
 /** @Table - 엔티티와 매핑할 정보를 지정하고
-*            사용법) @Index(name="원하는 명칭", colmunList = "사용할 테이블명")
-*                   name 부분을 생략하면 그냥 원래 이름 사용.
+ *            사용법) @Index(name="원하는 명칭", colmunList = "사용할 테이블명")
+ *                   name 부분을 생략하면 그냥 원래 이름 사용.
  *  @Index - 데이터베이스 인덱스는 추가, 쓰기 및 저장 공간을 희생해서 테이블에 대한 데이터 검색 속도를 향상시키는 데이터 구조
  *           @Entity 와 세트로 사용
-*/
+ */
 @EntityListeners(AuditingEntityListener.class)
 @Table(indexes = {
         @Index(columnList = "title"),
@@ -44,16 +66,16 @@ import java.util.Set;
            그래서 기본기(PK)가 뭔지 알려줘야 한다. 그게 @Id 에너테이션이다. */
 @Getter /* 2) getter / setter, toString 등의 롬복 어노테이션 사용 */ // 롬복의 @Getter 를 쓰면 알아서 모든 필드의 getter 들이 생성된다.
 @ToString
-public class Article {
+public class Article extends AuditingFields {
 
     @Id // 전체 필드중에서 이게 PK다. 라고 말해주는 것. @Id 가 없으면 @Entity 에러 난다.
     @GeneratedValue(strategy = GenerationType.IDENTITY) // 해당 필드가 auto_increment 인 경우 @GeneratedValue 을 써서 자동으로 값이 생성되게 해줘야 한다.기본키 전략
     private Long id;
 
     /*@Setter 도 @Getter 처럼 클래스 단위로 걸 수 있는데, 그렇게 하면 모든 필드에 접근이 가능해진다.
-    * 그런데 id 같은 경우에는 내가 부여하는게 아니라 JPA 에서 자동으로 부여해주는 번호이다.
-    *메타데이터들도 자동으로 JPA 가 세팅하게 만들어야 한다. 그래서 id 와 메타데이터는 @Setter 가 필요 없다.
-    * @Setter 의 경우에는 지금처럼 필요한 필드에만 주는걸 연습하자(이건 강사님 스타일. 회사마다 다를 수 있음.)
+     * 그런데 id 같은 경우에는 내가 부여하는게 아니라 JPA 에서 자동으로 부여해주는 번호이다.
+     *메타데이터들도 자동으로 JPA 가 세팅하게 만들어야 한다. 그래서 id 와 메타데이터는 @Setter 가 필요 없다.
+     * @Setter 의 경우에는 지금처럼 필요한 필드에만 주는걸 연습하자(이건 강사님 스타일. 회사마다 다를 수 있음.)
      * */
 
     /*@Column - 해당 컬럼이 not null 인 경우 @Column(nullable = false) 써준다.
@@ -90,26 +112,39 @@ public class Article {
      *
      *
      * */
+
+/*******************************************************************************/
+ //1)Embedded 방식
+/*
+    class Tmp {
+        @CreatedDate @Column(nullable = false) private LocalDateTime createdAt; // 생성일시
+        @CreatedBy @Column(nullable = false, length = 100) private String createdBy; // 생성자
+        @LastModifiedDate @Column(nullable = false) private LocalDateTime modifiedAt; // 수정일시
+        @LastModifiedBy @Column(nullable = false, length = 100) private String modifiedBy; // 수정자
+        }
+        @Embedded Tmp tmp;
+ */
+
     //메타데이터
-    @CreatedDate //알아서 데이트 생성해라~
-    @Column(nullable = false)
-    private LocalDateTime createdAt; // 생성일시
-
-    @CreatedBy
-    @Column(nullable = false, length = 100)
-    private String createdBy; // 생성자
-    /**다른 생성일시 같은 것들은 알아낼 수 있는데, 최초 생성자는(현재 코드 상태) 인증받고 오지 않았기 때문에 따로 알아낼 수가 없다.
-     * 이때 아까 만든 jpaConfig 파일을 사용한다.
-     * */
-
-    @LastModifiedDate
-    @Column(nullable = false)
-    private LocalDateTime modifiedAt; // 수정일시
-
-    @LastModifiedBy
-    @Column(nullable = false, length = 100)
-    private String modifiedBy; // 수정자
-
+//    @CreatedDate //알아서 데이트 생성해라~
+//    @Column(nullable = false)
+//    private LocalDateTime createdAt; // 생성일시
+//
+//    @CreatedBy
+//    @Column(nullable = false, length = 100)
+//    private String createdBy; // 생성자
+//    /**다른 생성일시 같은 것들은 알아낼 수 있는데, 최초 생성자는(현재 코드 상태) 인증받고 오지 않았기 때문에 따로 알아낼 수가 없다.
+//     * 이때 아까 만든 jpaConfig 파일을 사용한다.
+//     * */
+//
+//    @LastModifiedDate
+//    @Column(nullable = false)
+//    private LocalDateTime modifiedAt; // 수정일시
+//
+//    @LastModifiedBy
+//    @Column(nullable = false, length = 100)
+//    private String modifiedBy; // 수정자
+/*******************************************************************************/
     /**위에 처럼 어노테이션을 붙여주기만 하면 auditing이 작동한다.
      * @CreatedDate : 최초에 insert 할때 자동으로 한번 넣어준다.
      * @CreatedBy : 최초에 insert 할때 자동으로 한번 넣어준다.
@@ -145,30 +180,30 @@ public class Article {
      *     3) 중요!!!! - 객체 생성을 캡슐화 할 수 있다.
      * */
     /*
-    * public : 제한 없음.
-    * protected: 동일한 패키지 내 or 파생클래스
-    * default : 동일 패키지 내에서만 접근 가능
-    * private : 자기 자신의 클래스 내에서만 접근 가능
-    * */
+     * public : 제한 없음.
+     * protected: 동일한 패키지 내 or 파생클래스
+     * default : 동일 패키지 내에서만 접근 가능
+     * private : 자기 자신의 클래스 내에서만 접근 가능
+     * */
 
-/**엄청 어려운 개념!!!
- * 만약에 Article 클래스를 이용해서 게시글들을 list 에 담아서 화면을 구성할건데, 그걸 하려면 Collection 을 이용해야 한다.
- * Collection : 객체의 모음(그룹)
- *              자바가 제공하는 최상위 컬렉션(인터페이스)
- *              하이버네이트는 중복을 허용하고 순서를 보장하지 않는다고 가정
- *
- * Set: 중복 허용 안함. 순서도 보장하지 않음.
- * List: 중복 허용, 순서 있음
- * Map: key 와 value 구조로 되어 있는 특수 컬렉션
- *
- * list 에 넣거나 또는 list 에 있는 중복요소를 제거하거나 정렬할 때 비교를 할 수 있어야 하기 때문에
- * 동일성, 동등성 비교를 할 수 있는 equals 랑 hashcode 를 구현해야한다.
- *
- * 모든 데이터들을 비교해도 되지만, 다 불러와서 비교하면 느릴 수 있다.
- * 사실 id 만 같으면 두 엔티티가 같다는 뜻이니까 id만 가지고 비교하는걸 구현하자
- *
- * 체크박스 여러번 나올건데 id만 다 체크해서 만들면 됨
- * */
+    /**엄청 어려운 개념!!!
+     * 만약에 Article 클래스를 이용해서 게시글들을 list 에 담아서 화면을 구성할건데, 그걸 하려면 Collection 을 이용해야 한다.
+     * Collection : 객체의 모음(그룹)
+     *              자바가 제공하는 최상위 컬렉션(인터페이스)
+     *              하이버네이트는 중복을 허용하고 순서를 보장하지 않는다고 가정
+     *
+     * Set: 중복 허용 안함. 순서도 보장하지 않음.
+     * List: 중복 허용, 순서 있음
+     * Map: key 와 value 구조로 되어 있는 특수 컬렉션
+     *
+     * list 에 넣거나 또는 list 에 있는 중복요소를 제거하거나 정렬할 때 비교를 할 수 있어야 하기 때문에
+     * 동일성, 동등성 비교를 할 수 있는 equals 랑 hashcode 를 구현해야한다.
+     *
+     * 모든 데이터들을 비교해도 되지만, 다 불러와서 비교하면 느릴 수 있다.
+     * 사실 id 만 같으면 두 엔티티가 같다는 뜻이니까 id만 가지고 비교하는걸 구현하자
+     *
+     * 체크박스 여러번 나올건데 id만 다 체크해서 만들면 됨
+     * */
 
     @Override
     public boolean equals(Object o) {
