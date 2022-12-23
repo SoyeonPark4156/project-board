@@ -8,7 +8,6 @@ import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.*;
@@ -27,12 +26,11 @@ import java.util.Set;
  * */
 
 /** @Table - 엔티티와 매핑할 정보를 지정하고
-*            사용법) @Index(name="원하는 명칭", colmunList = "사용할 테이블명")
-*                   name 부분을 생략하면 그냥 원래 이름 사용.
+ *            사용법) @Index(name="원하는 명칭", colmunList = "사용할 테이블명")
+ *                   name 부분을 생략하면 그냥 원래 이름 사용.
  *  @Index - 데이터베이스 인덱스는 추가, 쓰기 및 저장 공간을 희생해서 테이블에 대한 데이터 검색 속도를 향상시키는 데이터 구조
  *           @Entity 와 세트로 사용
-*/
-@EntityListeners(AuditingEntityListener.class)
+ */
 @Table(indexes = {
         @Index(columnList = "title"),
         @Index(columnList = "hashtag"),
@@ -44,16 +42,16 @@ import java.util.Set;
            그래서 기본기(PK)가 뭔지 알려줘야 한다. 그게 @Id 에너테이션이다. */
 @Getter /* 2) getter / setter, toString 등의 롬복 어노테이션 사용 */ // 롬복의 @Getter 를 쓰면 알아서 모든 필드의 getter 들이 생성된다.
 @ToString
-public class Article {
+public class Ex01_1_Article_엔티티로_변경 {
 
     @Id // 전체 필드중에서 이게 PK다. 라고 말해주는 것. @Id 가 없으면 @Entity 에러 난다.
     @GeneratedValue(strategy = GenerationType.IDENTITY) // 해당 필드가 auto_increment 인 경우 @GeneratedValue 을 써서 자동으로 값이 생성되게 해줘야 한다.기본키 전략
     private Long id;
 
     /*@Setter 도 @Getter 처럼 클래스 단위로 걸 수 있는데, 그렇게 하면 모든 필드에 접근이 가능해진다.
-    * 그런데 id 같은 경우에는 내가 부여하는게 아니라 JPA 에서 자동으로 부여해주는 번호이다.
-    *메타데이터들도 자동으로 JPA 가 세팅하게 만들어야 한다. 그래서 id 와 메타데이터는 @Setter 가 필요 없다.
-    * @Setter 의 경우에는 지금처럼 필요한 필드에만 주는걸 연습하자(이건 강사님 스타일. 회사마다 다를 수 있음.)
+     * 그런데 id 같은 경우에는 내가 부여하는게 아니라 JPA 에서 자동으로 부여해주는 번호이다.
+     *메타데이터들도 자동으로 JPA 가 세팅하게 만들어야 한다. 그래서 id 와 메타데이터는 @Setter 가 필요 없다.
+     * @Setter 의 경우에는 지금처럼 필요한 필드에만 주는걸 연습하자(이건 강사님 스타일. 회사마다 다를 수 있음.)
      * */
 
     /*@Column - 해당 컬럼이 not null 인 경우 @Column(nullable = false) 써준다.
@@ -119,22 +117,21 @@ public class Article {
 
     /*Entity 를 만들때는 무조건 기본 생성자가 필요하다.
        public 또는 protected 만 가능한데, 평생 아무데서도 기본생성자를 안쓰이게 하고 싶어서 protected 로 변경함
-    */
-    protected Article(){}
+    * */
+    protected Ex01_1_Article_엔티티로_변경(){}
 
     /**사용자가 입력하는 값만 받기. 나머지는 시스템이 알아서 하게 해주면 됨.*/
-    private Article(String title, String content, String hashtag) {
+    private Ex01_1_Article_엔티티로_변경(String title, String content, String hashtag) {
         this.title = title;
         this.content = content;
         this.hashtag = hashtag;
     }
 
-    public static Article of(String title, String content, String hashtag){
-        return new Article(title, content, hashtag);
+    public static Ex01_1_Article_엔티티로_변경 of(String title, String content, String hashtag){
+        return new Ex01_1_Article_엔티티로_변경(title, content, hashtag);
     }
     /**정적 팩토리 메서드(factory method pattern 중에 하나)
-     * 정적 팩토리 메서드란 객체 생성 역할을 하는 클래스 메서드라는
-     * 뜻.
+     * 정적 팩토리 메서드란 객체 생성 역할을 하는 클래스 메서드라는 뜻.
      * of의 쓰임이 정적 팩토리 메서드를 의미하는 것이고, 아무 이름이나 넣어도 된다.
      * of 메서드를 이용해서 위에 있는 private 생성자를 직접적으로 사용해서 객체를 생성하게 하는 방법
      * 중요!!!! : 무조건 static 으로 놔야 한다.
@@ -145,38 +142,37 @@ public class Article {
      *     3) 중요!!!! - 객체 생성을 캡슐화 할 수 있다.
      * */
     /*
-    * public : 제한 없음.
-    * protected: 동일한 패키지 내 or 파생클래스
-    * default : 동일 패키지 내에서만 접근 가능
-    * private : 자기 자신의 클래스 내에서만 접근 가능
-    * */
+     * public : 제한 없음.
+     * protected: 동일한 패키지 내 or 파생클래스
+     * default : 동일 패키지 내에서만 접근 가능
+     * private : 자기 자신의 클래스 내에서만 접근 가능
+     * */
 
-/**엄청 어려운 개념!!!
- * 만약에 Article 클래스를 이용해서 게시글들을 list 에 담아서 화면을 구성할건데, 그걸 하려면 Collection 을 이용해야 한다.
- * Collection : 객체의 모음(그룹)
- *              자바가 제공하는 최상위 컬렉션(인터페이스)
- *              하이버네이트는 중복을 허용하고 순서를 보장하지 않는다고 가정
- *
- * Set: 중복 허용 안함. 순서도 보장하지 않음.
- * List: 중복 허용, 순서 있음
- * Map: key 와 value 구조로 되어 있는 특수 컬렉션
- *
- * list 에 넣거나 또는 list 에 있는 중복요소를 제거하거나 정렬할 때 비교를 할 수 있어야 하기 때문에
- * 동일성, 동등성 비교를 할 수 있는 equals 랑 hashcode 를 구현해야한다.
- *
- * 모든 데이터들을 비교해도 되지만, 다 불러와서 비교하면 느릴 수 있다.
- * 사실 id 만 같으면 두 엔티티가 같다는 뜻이니까 id만 가지고 비교하는걸 구현하자
- *
- * 체크박스 여러번 나올건데 id만 다 체크해서 만들면 됨
- * */
+    /**엄청 어려운 개념!!!
+     * 만약에 Article 클래스를 이용해서 게시글들을 list 에 담아서 화면을 구성할건데, 그걸 하려면 Collection 을 이용해야 한다.
+     * Collection : 객체의 모음(그룹)
+     *              자바가 제공하는 최상위 컬렉션(인터페이스)
+     *              하이버네이트는 중복을 허용하고 순서를 보장하지 않는다고 가정
+     *
+     * Set: 중복 허용 안함. 순서도 보장하지 않음.
+     * List: 중복 허용, 순서 있음
+     * Map: key 와 value 구조로 되어 있는 특수 컬렉션
+     *
+     * list 에 넣거나 또는 list 에 있는 중복요소를 제거하거나 정렬할 때 비교를 할 수 있어야 하기 때문에
+     * 동일성, 동등성 비교를 할 수 있는 equals 랑 hashcode 를 구현해야한다.
+     *
+     * 모든 데이터들을 비교해도 되지만, 다 불러와서 비교하면 느릴 수 있다.
+     * 사실 id 만 같으면 두 엔티티가 같다는 뜻이니까 id만 가지고 비교하는걸 구현하자
+     *
+     * 체크박스 여러번 나올건데 id만 다 체크해서 만들면 됨
+     * */
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Article article = (Article) o;
-        return id.equals(article.id);
-//        return id != null && id.equals(article.id);
+        Ex01_1_Article_엔티티로_변경 that = (Ex01_1_Article_엔티티로_변경) o;
+        return id.equals(that.id);
     }
 
     @Override

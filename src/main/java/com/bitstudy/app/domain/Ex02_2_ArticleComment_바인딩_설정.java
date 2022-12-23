@@ -9,7 +9,6 @@ import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 
 import javax.persistence.*;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -24,7 +23,7 @@ import java.time.LocalDateTime;
         @Index(columnList = "createdBy")
 })
 
-public class ArticleComment {
+public class Ex02_2_ArticleComment_바인딩_설정 {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

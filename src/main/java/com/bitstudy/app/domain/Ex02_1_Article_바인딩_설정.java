@@ -1,15 +1,12 @@
 package com.bitstudy.app.domain;
 
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import org.springframework.stereotype.Service;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -32,7 +29,6 @@ import java.util.Set;
  *  @Index - 데이터베이스 인덱스는 추가, 쓰기 및 저장 공간을 희생해서 테이블에 대한 데이터 검색 속도를 향상시키는 데이터 구조
  *           @Entity 와 세트로 사용
 */
-@EntityListeners(AuditingEntityListener.class)
 @Table(indexes = {
         @Index(columnList = "title"),
         @Index(columnList = "hashtag"),
@@ -44,7 +40,7 @@ import java.util.Set;
            그래서 기본기(PK)가 뭔지 알려줘야 한다. 그게 @Id 에너테이션이다. */
 @Getter /* 2) getter / setter, toString 등의 롬복 어노테이션 사용 */ // 롬복의 @Getter 를 쓰면 알아서 모든 필드의 getter 들이 생성된다.
 @ToString
-public class Article {
+public class Ex02_1_Article_바인딩_설정 {
 
     @Id // 전체 필드중에서 이게 PK다. 라고 말해주는 것. @Id 가 없으면 @Entity 에러 난다.
     @GeneratedValue(strategy = GenerationType.IDENTITY) // 해당 필드가 auto_increment 인 경우 @GeneratedValue 을 써서 자동으로 값이 생성되게 해줘야 한다.기본키 전략
@@ -119,22 +115,21 @@ public class Article {
 
     /*Entity 를 만들때는 무조건 기본 생성자가 필요하다.
        public 또는 protected 만 가능한데, 평생 아무데서도 기본생성자를 안쓰이게 하고 싶어서 protected 로 변경함
-    */
-    protected Article(){}
+    * */
+    protected Ex02_1_Article_바인딩_설정(){}
 
     /**사용자가 입력하는 값만 받기. 나머지는 시스템이 알아서 하게 해주면 됨.*/
-    private Article(String title, String content, String hashtag) {
+    private Ex02_1_Article_바인딩_설정(String title, String content, String hashtag) {
         this.title = title;
         this.content = content;
         this.hashtag = hashtag;
     }
 
-    public static Article of(String title, String content, String hashtag){
-        return new Article(title, content, hashtag);
+    public static Ex02_1_Article_바인딩_설정 of(String title, String content, String hashtag){
+        return new Ex02_1_Article_바인딩_설정(title, content, hashtag);
     }
     /**정적 팩토리 메서드(factory method pattern 중에 하나)
-     * 정적 팩토리 메서드란 객체 생성 역할을 하는 클래스 메서드라는
-     * 뜻.
+     * 정적 팩토리 메서드란 객체 생성 역할을 하는 클래스 메서드라는 뜻.
      * of의 쓰임이 정적 팩토리 메서드를 의미하는 것이고, 아무 이름이나 넣어도 된다.
      * of 메서드를 이용해서 위에 있는 private 생성자를 직접적으로 사용해서 객체를 생성하게 하는 방법
      * 중요!!!! : 무조건 static 으로 놔야 한다.
@@ -174,7 +169,7 @@ public class Article {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Article article = (Article) o;
+        Ex02_1_Article_바인딩_설정 article = (Ex02_1_Article_바인딩_설정) o;
         return id.equals(article.id);
 //        return id != null && id.equals(article.id);
     }
